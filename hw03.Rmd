@@ -1,0 +1,56 @@
+---
+title: "hw03"
+author: "Ziqiang Tang"
+data: "2018-09-30"
+output: github_document
+---
+
+## Overview
+The aim of this aissignment is to manipulate and explore a dataset with the dplyr package, complmented by visulization made with ggplot2.
+
+
+## Task menu
+First, let's library all dataset.
+```{r}
+library(gapminder)
+library(tidyverse)
+library(knitr)
+```
+
+###1. Get the maximum and minimum of GDP per capital for all continents
+```{r}
+GDP_per_cap <- gapminder %>% 
+  group_by(continent) %>% 
+  summarize(minGDP = min(gdpPercap),
+            maxGDP = max(gdpPercap))
+GDP_per_cap%>% 
+    kable(col.names = c("Continent", "Min GDP", "Max GDP"))
+```
+#### Let's try to view the minimum and maximum of GDP per capital for all continents.
+```{r}
+GDP_per_cap %>% 
+  ##get the col 2 and 3 data_set
+  gather(key=type, value=GDP_per_cap, 2:3) %>%  
+  ##plot the data with color fill
+  ggplot(aes(x = continent, y = GDP_per_cap, fill = continent)) +
+  ##the height of bars reporesents the data
+  geom_col(alpha=0.5)+
+  ##warp with maxGDP and minGDP with the y-scale is not aligned
+  facet_wrap(.~type)  +
+  ggtitle("The GDP per capital for all continents") +
+  xlab("Continent") +
+  ylab("GDP per capital")
+```
+####Let's try to view the average of GDP per capital for all continents.
+```{r}
+GDP_per_cap %>% 
+ggplot(aes(x = minGDP, y = maxGDP)) +
+    scale_size_area() +
+  geom_point(aes(color=continent, size = (maxGDP - minGDP)), 
+             alpha =0.5) +
+  coord_polar() +
+  ggtitle("maxGDP - minGDP per capital in all continents")
+```
+This polar diagram give us the intuition of the largeset GDP difference continent is Oceania while the smallest GDP difference is Africa.
+
+###2. Look at the spread of GDP per capital within the continents
