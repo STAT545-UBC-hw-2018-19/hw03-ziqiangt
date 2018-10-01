@@ -122,6 +122,50 @@ mean_lifeExp %>%
   geom_point(color="black") +
   facet_wrap(.~mean_value)  +
   labs(x = "Year", y = "LifeExp", 
-              title = "Mean and Weighed Mean of life expectancy vs each year")
+  title = "Mean and Weighed Mean of life expectancy vs each year")
 ```
 
+###4.How is life expectancy changing over time on different continents?
+```{r}
+Lifechange <- gapminder %>% 
+  group_by(year, continent) %>% 
+  summarize(Mean_lifeExp = mean(lifeExp)) 
+
+##let's view the first 10 rows
+knitr::kable(head(Lifechange,10))  
+```
+
+####Let's view the mean_lifeExp
+```{r}
+Lifechange %>%
+  ggplot(aes(x =year, y=Mean_lifeExp,color = continent)) +
+  geom_line() +
+  geom_point(color="black") +
+  labs(x = "Year", y = "LifeExp", 
+  title = "life expectancy changing over time on different continents")
+```
+
+####Let's view the growth of lifeExp
+```{r}
+Growth_life <- gapminder %>% 
+  group_by(continent) %>% 
+  mutate(growth = lifeExp - lag(lifeExp)) 
+
+
+##let's view the first 10 rows
+knitr::kable(head(Growth_life,10)) 
+```
+
+####let's view the whether the lifeExp for each year is higher than the mean value of lifeExp or not
+```{r}
+higher_mean <- gapminder %>%
+  group_by( year, continent ) %>% 
+  mutate( mean_life = mean( lifeExp )) %>% 
+  mutate( lower_OR_higher = if_else( lifeExp < mean_life ,
+                                     "+", "-" )) %>% 
+  select (year, continent, 
+          lifeExp, lower_OR_higher) %>% 
+  arrange(continent,year) 
+
+knitr::kable( head( higher_mean,10 ))
+```
