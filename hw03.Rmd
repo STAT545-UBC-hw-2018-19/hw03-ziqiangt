@@ -26,22 +26,26 @@ GDP_per_cap <- gapminder %>%
 GDP_per_cap%>% 
     kable(col.names = c("Continent", "Min GDP", "Max GDP"))
 ```
+
 #### Let's try to view the minimum and maximum of GDP per capital for all continents.
 ```{r}
 GDP_per_cap %>% 
   ##get the col 2 and 3 data_set
-  gather(key=type, value=GDP_per_cap, 2:3) %>%  
+  gather(key=min_or_max, value=GDP_per_cap, 2:3) %>%  
   ##plot the data with color fill
   ggplot(aes(x = continent, y = GDP_per_cap, fill = continent)) +
   ##the height of bars reporesents the data
-  geom_col(alpha=0.5)+
+  geom_col(alpha=0.5) +
+  ##scale the y-axis
+  scale_y_log10() +
   ##warp with maxGDP and minGDP with the y-scale is not aligned
-  facet_wrap(.~type)  +
+  facet_wrap(.~min_or_max)  +
   ggtitle("The GDP per capital for all continents") +
   xlab("Continent") +
   ylab("GDP per capital")
 ```
-####Let's try to view the average of GDP per capital for all continents.
+
+####Let's try to view the difference between max GDP and min GDP per capital for all continents.
 ```{r}
 GDP_per_cap %>% 
 ggplot(aes(x = minGDP, y = maxGDP)) +
@@ -49,8 +53,49 @@ ggplot(aes(x = minGDP, y = maxGDP)) +
   geom_point(aes(color=continent, size = (maxGDP - minGDP)), 
              alpha =0.5) +
   coord_polar() +
+  scale_y_log10() +
   ggtitle("maxGDP - minGDP per capital in all continents")
 ```
-This polar diagram give us the intuition of the largeset GDP difference continent is Oceania while the smallest GDP difference is Africa.
+This polar diagram give us the intuition that the largeset GDP difference continent is Asia while the smallest GDP difference is Africa.
 
 ###2. Look at the spread of GDP per capital within the continents
+```{r}
+Spread_GDP <- gapminder %>%   
+  group_by(continent) %>% 
+  summarise(sd_GDP = sd(gdpPercap),
+            mean_GDP = mean(gdpPercap),
+            max_GDP = max(gdpPercap),
+            min_GDP = min(gdpPercap))
+
+Spread_GDP %>% 
+  mutate( gdp_range = paste( min_GDP, max_GDP, sep = " ~ ")) %>%
+  arrange(max_GDP-min_GDP) %>% 
+  kable()
+```
+
+From this table, it could also been seen that the largest GDP range is Asia while smallest GDP range is Africa.
+
+####  let's view the spread using viloin plot
+```{r}
+gapminder %>% 
+  ggplot(aes(continent, gdpPercap)) +
+  geom_violin(aes(fill = continent), alpha = 0.5) +
+  geom_jitter(aes(fill = continent), alpha=0.03) +
+  scale_y_log10() +
+  labs( x = "continent", y = "GDP per capita in log scale", 
+  title = "spread of GDP per capita within the continents")
+```
+
+#### let's view other information
+```{r}
+Spread_GDP %>%
+  gather(key=spread, value=Spread_GDP, 2:5) %>%  
+  ggplot(aes(x = continent, y = Spread_GDP, fill = continent)) +
+  geom_bin2d(alpha=0.5) +
+  facet_wrap(.~spread)  +
+  scale_y_log10() +
+  labs( x = "spread data", y = "GDP per capita in log scale", 
+  title = "spread of GDP per capita within the continents")
+```
+
+From the above figure, we can see that Asia and Americas have similar mean value while have different strandard value. This is corresponds to what we expected since Asia has larger max - min value of GDP per capital than America.
